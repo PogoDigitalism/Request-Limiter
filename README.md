@@ -9,7 +9,10 @@ local sss = game:GetService('ServerScriptService')
 
 local RequestLimiter = require(sss:WaitForChild('RequestLimiter'))
 
-local request_limiter = RequestLimiter.new(15, 5, 2)
+local request_limiter = RequestLimiter.new()
+request_limiter:capReachedSignal(SignalService.RemoteCalls__Capped)
+request_limiter:enableKick(4)
+
 local remote_funcs = {}
 for i, rm: RemoteFunction in rs:WaitForChild('RemoteEvents').PlayerData.FromClient:GetChildren() do
 	remote_funcs[rm.Name] = rm
