@@ -5,9 +5,11 @@ Route your client to server communications through this request-limit manager. A
 Example:
 ```lua
 local rs = game:GetService('ReplicatedStorage')
+local sss = game:GetService('ServerScriptService')
+
+local RequestLimiter = require(sss:WaitForChild('RequestLimiter'))
 
 local request_limiter = RequestLimiter.new(15, 5, 2)
-
 local remote_funcs = {}
 for i, rm: RemoteFunction in rs:WaitForChild('RemoteEvents').PlayerData.FromClient:GetChildren() do
 	remote_funcs[rm.Name] = rm
