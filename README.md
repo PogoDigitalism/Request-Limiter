@@ -16,10 +16,13 @@ for i, rm: RemoteFunction in rs:WaitForChild('RemoteEvents').PlayerData.FromClie
 end
 
 local funcs_callbacks = {
-	GetEquippedGear = request_limiter:Route(function(p: Player, gear_name: string)
-		local player_data = PlayerDataService.GetPlayerDataInstance(p)
-		return player_data:EquippedGears()
-	end, player, gear_name),
+	GetEquippedGear = function(p: Player, gear_name: string)
+		request_limiter:Route(p, function()
+			local player_data = PlayerDataService.GetPlayerDataInstance(p)
+			return player_data:EquippedGears()
+			
+		end)
+	end,
 
 for k, v in pairs(remote_funcs) do
 	v.OnServerInvoke = funcs_callbacks[k]
