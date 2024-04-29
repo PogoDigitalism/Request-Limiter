@@ -29,3 +29,6 @@ local funcs_callbacks = {
 for k, v in pairs(remote_funcs) do
 	v.OnServerInvoke = funcs_callbacks[k]
 end
+```
+Result:
+![image](https://github.com/PogoDigitalism/Request-Limiter/assets/107322523/0741b88f-a6db-453f-898e-dcfdb1646fe9)
