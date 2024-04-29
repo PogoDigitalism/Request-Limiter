@@ -17,10 +17,9 @@ end
 
 local funcs_callbacks = {
 	GetEquippedGear = function(p: Player)
-		request_limiter:Route(p, function()
+		return request_limiter:Route(p, function()
 			local player_data = PlayerDataService.GetPlayerDataInstance(p)
-			return player_data:EquippedGears()
-			
+			return player_data:EquippedGears()	
 		end)
 	end,
 
