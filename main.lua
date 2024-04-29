@@ -1,8 +1,8 @@
-local RemoteCredits = {}
-RemoteCredits.__index = RemoteCredits
+local RequestLimiter = {}
+RequestLimiter.__index = RequestLimiter
 
-function RemoteCredits.new(credit_cap: number, refill_rate_per_second: number, timeout: number)
-	local self = setmetatable({}, RemoteCredits)
+function RequestLimiter.new(credit_cap: number, refill_rate_per_second: number, timeout: number)
+	local self = setmetatable({}, RequestLimiter)
 	
 	self.refill_rate = refill_rate_per_second or 3
 	self.credit_cap = credit_cap or 15
@@ -23,7 +23,7 @@ function RemoteCredits.new(credit_cap: number, refill_rate_per_second: number, t
 	return self
 end
 
-function RemoteCredits:_CalcRefill(player: Player)
+function RequestLimiter:_CalcRefill(player: Player)
 	local ms_time = DateTime.now().UnixTimestampMillis
 	local player_info = self.player_info[player.UserId]
 	
@@ -33,16 +33,16 @@ function RemoteCredits:_CalcRefill(player: Player)
 	return refill
 end
 
-function RemoteCredits:capReachedSignal(signal: any)
+function RequestLimiter:capReachedSignal(signal: any)
 	self._cap_signal = signal
 end
 
-function RemoteCredits:enableKick(threshold: number)
+function RequestLimiter:enableKick(threshold: number)
 	self._threshold_limit = threshold
 	self._apply_kick = true
 end
 
-function RemoteCredits:deductCredit(player: Player)
+function RequestLimiter:deductCredit(player: Player)
 	local to_refill = self:_CalcRefill(player)
 	self.player_info[player.UserId].credits += to_refill
 	
@@ -63,7 +63,7 @@ function RemoteCredits:deductCredit(player: Player)
 	end
 end
 
-function RemoteCredits:Route(player: Player, func, ...): any
+function RequestLimiter:Route(player: Player, func, ...): any
 	if self:deductCredit(player) then
 		return func(...)
 	else
@@ -71,7 +71,7 @@ function RemoteCredits:Route(player: Player, func, ...): any
 	end
 end
 
-function RemoteCredits:addPlayer(player: Player)
+function RequestLimiter:addPlayer(player: Player)
 	self.player_info[player.UserId] = {
 		last_request = 0,
 		credits = self.credit_cap,
@@ -79,4 +79,4 @@ function RemoteCredits:addPlayer(player: Player)
 	}
 end
 
-return RemoteCredits
+return RequestLimiter
