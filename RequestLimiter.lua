@@ -27,8 +27,8 @@ function RequestLimiter:_CalcRefill(player: Player)
 	local ms_time = DateTime.now().UnixTimestampMillis
 	local player_info = self.player_info[player.UserId]
 	
-	local refill = math.min(
-		math.floor(self.credit_cap-player_info.credits, ((ms_time-player_info.last_request)/1000) * self.refill_rate)
+	local refill = math.floor(
+		math.min(self.credit_cap-player_info.credits, ((ms_time-player_info.last_request)/1000) * self.refill_rate)
 	)
 	return refill
 end
@@ -44,6 +44,7 @@ end
 
 function RequestLimiter:deductCredit(player: Player)
 	local to_refill = self:_CalcRefill(player)
+	
 	self.player_info[player.UserId].credits += to_refill
 	
 	local credits_left = self.player_info[player.UserId].credits
@@ -54,9 +55,10 @@ function RequestLimiter:deductCredit(player: Player)
 			self.player_info[player.UserId] = nil
 		end
 		
-		self._cap_signal:Fire(player)
+		self._cap_signal:Fire(player, self.timeout, self._threshold_limit-self.player_info[player.UserId].thresholds_passed)
 		return false
 	else
+		self.player_info[player.UserId].last_request = DateTime.now().UnixTimestampMillis
 		self.player_info[player.UserId].credits -= 1
 		
 		return true
@@ -64,7 +66,12 @@ function RequestLimiter:deductCredit(player: Player)
 end
 
 function RequestLimiter:Route(player: Player, func, ...): any
+	if not self.player_info[player.UserId] then
+		self:addPlayer(player)
+	end
+
 	if self:deductCredit(player) then
+		self.player_info[player.UserId].last_request = DateTime.now().UnixTimestampMillis
 		return func(...)
 	else
 		error('Player reached credit cap.')
