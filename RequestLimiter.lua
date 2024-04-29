@@ -11,14 +11,6 @@ function RequestLimiter.new(credit_cap: number, refill_rate_per_second: number, 
 	self._threshold_limit = 9999
 	self._apply_kick = false
 	self.player_info = {}
-	--[[
-	[123456789] = {
-		last_request = 323523523523523523,
-		credits = 6,
-		thresholds_passed = 1
-	}
-	
-	]]
 	
 	return self
 end
