@@ -4,5 +4,21 @@ Route your client to server communications through this request-limit manager. A
 
 Example:
 ```lua
+local rs = game:GetService('ReplicatedStorage')
+
 local request_limiter = RequestLimiter.new(15, 5, 2)
 
+local remote_funcs = {}
+for i, rm: RemoteFunction in rs:WaitForChild('RemoteEvents').PlayerData.FromClient:GetChildren() do
+	remote_funcs[rm.Name] = rm
+end
+
+local funcs_callbacks = {
+	GetEquippedGear = request_limiter:Route(function(p: Player, gear_name: string)
+		local player_data = PlayerDataService.GetPlayerDataInstance(p)
+		return player_data:EquippedGears()
+	end, player, gear_name),
+
+for k, v in pairs(remote_funcs) do
+	v.OnServerInvoke = funcs_callbacks[k]
+end
