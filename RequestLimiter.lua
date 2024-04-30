@@ -15,7 +15,7 @@ function RequestLimiter.new(credit_cap: number, refill_rate_per_second: number, 
 	return self
 end
 
-function RequestLimiter:_CalcRefill(player: Player)
+function RequestLimiter:_calcRefill(player: Player)
 	local ms_time = DateTime.now().UnixTimestampMillis
 	local player_info = self.player_info[player.UserId]
 	
