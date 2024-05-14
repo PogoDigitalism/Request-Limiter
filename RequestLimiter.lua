@@ -1,8 +1,10 @@
 local RequestLimiter = {}
 RequestLimiter.__index = RequestLimiter
 
-function RequestLimiter.new(credit_cap: number, refill_rate_per_second: number, timeout: number)
+function RequestLimiter.new(credit_cap: number, refill_rate_per_second: number, timeout: number, name: string?)
 	local self = setmetatable({}, RequestLimiter)
+	
+	self.name = name or "RequestLimiter"
 	
 	self.refill_rate = refill_rate_per_second or 3
 	self.credit_cap = credit_cap or 15
@@ -11,11 +13,19 @@ function RequestLimiter.new(credit_cap: number, refill_rate_per_second: number, 
 	self._threshold_limit = 9999
 	self._apply_kick = false
 	self.player_info = {}
+	--[[
+	[123456789] = {
+		last_request = 323523523523523523,
+		credits = 6,
+		thresholds_passed = 1
+	}
+	
+	]]
 	
 	return self
 end
 
-function RequestLimiter:_calcRefill(player: Player)
+function RequestLimiter:_CalcRefill(player: Player)
 	local ms_time = DateTime.now().UnixTimestampMillis
 	local player_info = self.player_info[player.UserId]
 	
@@ -57,14 +67,14 @@ function RequestLimiter:deductCredit(player: Player)
 	end
 end
 
-function RequestLimiter:Route(player: Player, func, ...): any
+function RequestLimiter:Route(player: Player, func, func_name: string?): any
 	if not self.player_info[player.UserId] then
 		self:addPlayer(player)
 	end
 
 	if self:deductCredit(player) then
 		self.player_info[player.UserId].last_request = DateTime.now().UnixTimestampMillis
-		return func(...)
+		return func()
 	else
 		error('Player reached credit cap.')
 	end
