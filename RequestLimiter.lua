@@ -17,7 +17,8 @@ function RequestLimiter.new(credit_cap: number, refill_rate_per_second: number, 
 	[123456789] = {
 		last_request = 323523523523523523,
 		credits = 6,
-		thresholds_passed = 1
+		thresholds_passed = 1,
+		request_amount = 0
 	}
 	
 	]]
@@ -60,6 +61,7 @@ function RequestLimiter:deductCredit(player: Player)
 		self._cap_signal:Fire(player, self.timeout, self._threshold_limit-self.player_info[player.UserId].thresholds_passed)
 		return false
 	else
+		self.player_info[player.UserId].request_amount += 1
 		self.player_info[player.UserId].last_request = DateTime.now().UnixTimestampMillis
 		self.player_info[player.UserId].credits -= 1
 		
@@ -68,15 +70,19 @@ function RequestLimiter:deductCredit(player: Player)
 end
 
 function RequestLimiter:Route(player: Player, func, func_name: string?): any
+	func_name = func_name or ""
+	--warn("--> "..func_name.." ROUTED", player.Name)
 	if not self.player_info[player.UserId] then
 		self:addPlayer(player)
 	end
 
 	if self:deductCredit(player) then
+		warn(player.Name, self.player_info[player.UserId].request_amount)
+		
 		self.player_info[player.UserId].last_request = DateTime.now().UnixTimestampMillis
 		return func()
 	else
-		error('Player reached credit cap.')
+		error(player.Name..' Player reached credit cap.')
 	end
 end
 
@@ -84,7 +90,8 @@ function RequestLimiter:addPlayer(player: Player)
 	self.player_info[player.UserId] = {
 		last_request = 0,
 		credits = self.credit_cap,
-		thresholds_passed = 0
+		thresholds_passed = 0,
+		request_amount = 0
 	}
 end
 
