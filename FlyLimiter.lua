@@ -1,10 +1,10 @@
-local RequestLimiter = {}
-RequestLimiter.__index = RequestLimiter
+local FlyLimiter = {}
+FlyLimiter.__index = FlyLimiter
 
-function RequestLimiter.new(credit_cap: number, refill_rate_per_second: number, timeout: number, name: string?)
-	local self = setmetatable({}, RequestLimiter)
+function FlyLimiter.new(credit_cap: number, refill_rate_per_second: number, timeout: number, name: string?)
+	local self = setmetatable({}, FlyLimiter)
 	
-	self.name = name or "RequestLimiter"
+	self.name = name or "FlyLimiter"
 	
 	self.refill_rate = refill_rate_per_second or 3
 	self.credit_cap = credit_cap or 15
@@ -26,7 +26,7 @@ function RequestLimiter.new(credit_cap: number, refill_rate_per_second: number, 
 	return self
 end
 
-function RequestLimiter:_CalcRefill(player: Player)
+function FlyLimiter:_CalcRefill(player: Player)
 	local ms_time = DateTime.now().UnixTimestampMillis
 	local player_info = self.player_info[player.UserId]
 	
@@ -36,16 +36,16 @@ function RequestLimiter:_CalcRefill(player: Player)
 	return refill
 end
 
-function RequestLimiter:capReachedSignal(signal: any)
+function FlyLimiter:capReachedSignal(signal: any)
 	self._cap_signal = signal
 end
 
-function RequestLimiter:enableKick(threshold: number)
+function FlyLimiter:enableKick(threshold: number)
 	self._threshold_limit = threshold
 	self._apply_kick = true
 end
 
-function RequestLimiter:deductCredit(player: Player)
+function FlyLimiter:deductCredit(player: Player)
 	local to_refill = self:_CalcRefill(player)
 	
 	self.player_info[player.UserId].credits += to_refill
@@ -69,7 +69,7 @@ function RequestLimiter:deductCredit(player: Player)
 	end
 end
 
-function RequestLimiter:Route(player: Player, func, func_name: string?): any
+function FlyLimiter:Route(player: Player, func, func_name: string?): any
 	func_name = func_name or ""
 	--warn("--> "..func_name.." ROUTED", player.Name)
 	if not self.player_info[player.UserId] then
@@ -86,7 +86,7 @@ function RequestLimiter:Route(player: Player, func, func_name: string?): any
 	end
 end
 
-function RequestLimiter:addPlayer(player: Player)
+function FlyLimiter:addPlayer(player: Player)
 	self.player_info[player.UserId] = {
 		last_request = 0,
 		credits = self.credit_cap,
@@ -95,4 +95,4 @@ function RequestLimiter:addPlayer(player: Player)
 	}
 end
 
-return RequestLimiter
+return FlyLimiter
